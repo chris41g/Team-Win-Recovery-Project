@@ -120,7 +120,7 @@ int verify_file(const char* path, const RSAPublicKey *pKeys, unsigned int numKey
         return VERIFY_FAILURE;
     }
 
-    unsigned int i;
+    int i;
     for (i = 4; i < eocd_size-3; ++i) {
         if (eocd[i  ] == 0x50 && eocd[i+1] == 0x4b &&
             eocd[i+2] == 0x05 && eocd[i+3] == 0x06) {

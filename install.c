@@ -29,7 +29,7 @@
 #include "minuitwrp/minui.h"
 #include "minzip/SysUtil.h"
 #include "minzip/Zip.h"
-#include "mtdutils/mounts.h"
+#include "mounts.h"
 #include "mtdutils/mtdutils.h"
 #include "roots.h"
 #include "verifier.h"
@@ -37,6 +37,7 @@
 #include "extra-functions.h"
 
 #define ASSUMED_UPDATE_BINARY_NAME  "META-INF/com/google/android/update-binary"
+#define ASSUMED_UPDATE_SCRIPT_NAME  "META-INF/com/google/android/update-script"
 #define PUBLIC_KEYS_FILE "/res/keys"
 #define INCLUDED_BINARY_NAME "/sbin/update-binary"
 
@@ -126,12 +127,16 @@ try_update_binary(const char *path, ZipArchive *zip) {
 
     pid_t pid = fork();
     if (pid == 0) {
+        setenv("UPDATE_PACKAGE", path, 1);
         close(pipefd[0]);
         execv(binary, args);
         fprintf(stdout, "E:Can't run %s (%s)\n", binary, strerror(errno));
         _exit(-1);
     }
     close(pipefd[1]);
+
+    char* firmware_type = NULL;
+    char* firmware_filename = NULL;
 
     char buffer[1024];
     FILE* from_child = fdopen(pipefd[0], "r");
@@ -169,6 +174,7 @@ try_update_binary(const char *path, ZipArchive *zip) {
     waitpid(pid, &status, 0);
     if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
         LOGE("Error in %s\n(Status %d)\n", path, WEXITSTATUS(status));
+        mzCloseZipArchive(zip);
         return INSTALL_ERROR;
     }
 

@@ -18,6 +18,7 @@ LOCAL_SRC_FILES := \
     install.c \
     roots.c \
     ui.c \
+	mounts.c \
     verifier.c \
     encryptedfs_provisioning.c \
     extra-functions.c \
